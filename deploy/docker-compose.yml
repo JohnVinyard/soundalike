@@ -1,0 +1,48 @@
+version: '2'
+
+services:
+  redis:
+    build: ./redis
+    ports:
+      - "6379:6379"
+
+  zounds:
+    build: ./zounds
+    image: zounds
+
+  soundalike:
+    build:
+        context: ../
+        dockerfile: remote/Dockerfile-soundalike
+    ports:
+        - "8000:8000"
+    volumes:
+        - data-volume:/var/lib/data
+    depends_on:
+        - zounds
+        - redis
+    links:
+        - redis
+
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - soundalike
+    links:
+      - soundalike
+
+  indexer:
+     build:
+        context: ../
+        dockerfile: remote/Dockerfile-indexer
+     depends_on:
+        - nginx
+     volumes:
+        - data-volume:/var/lib/data
+     links:
+        - nginx:api
+
+volumes:
+    data-volume:
