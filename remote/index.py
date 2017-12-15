@@ -29,4 +29,5 @@ def hamming_index(snd_cls, recent_id):
         snd_cls.hashed,
         version=snd_cls.hashed.version,
         path=str(HammingIndexPath(recent_id)),
-        listen=False)
+        listen=False,
+        web_url=lambda doc, ts: doc.meta['web_url'])

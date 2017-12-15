@@ -24,7 +24,7 @@ class AutoencoderSettings(ff.PersistenceSettings):
     id_provider = ff.UserSpecifiedIdProvider(key='_id')
     key_builder = ff.StringDelimitedKeyBuilder(seperator='|')
     database = ff.LmdbDatabase(
-        path='/var/lib/soundalike/autoencoder',
+        path='/home/user/autoencoder',
         map_size=1e10,
         key_builder=key_builder)
 

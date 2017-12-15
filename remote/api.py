@@ -147,7 +147,8 @@ class SoundFeatureResource(object):
 
 
 def transform_search_result(result, req, nresults):
-    _id, ts = result
+    _id, ts, extra_data = result
+
     ts = WebTimeSlice(ts)
     quoted_id = urllib.quote(_id, safe='')
     qs = ts.to_query_string()
@@ -185,7 +186,8 @@ def transform_search_result(result, req, nresults):
             quoted_id=quoted_id,
             feature='meta',
             timeslice_query_string=qs,
-            req=req))
+            req=req)),
+        **extra_data
     )
 
 

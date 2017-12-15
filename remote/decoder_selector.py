@@ -45,7 +45,6 @@ class JsonDecoder(BaseDecoder):
 
     def decode(self, _id, feature, cls, timeslice):
         f = feature(_id=_id, persistence=cls, decoder=Decoder())
-        f = BytesIO()
         return DecodeResult(f, {'Content-Type': 'application/json'})
 
 

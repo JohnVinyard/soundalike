@@ -3,46 +3,46 @@ from config import soundalike_client
 import argparse
 
 queries = [
-    'drums',
-    'guitar',
-    'voice',
-    'bass',
-    'cello',
-    'violin',
-    'viola',
-    'piano',
-    'trombone',
-    'trumpet',
-    'saxophone',
-    'rhodes',
-    'moog',
-    'synth',
-    'birds',
-    'ambient',
-    'snare',
-    'kick',
-    'classical',
-    'cymbal',
-    'tom',
-    'triangle',
-    'electric',
-    'riff',
-    'heavy',
-    'trance',
-    'moan',
-    'spooky',
-    'scary',
-    'evil',
-    'xylophone',
-    'marimba',
-    'bells',
-    'bell',
-    'hihat',
-    'strings',
-    'acoustic',
-    'crash',
-    'ride',
-    'metal',
+    # 'drums',
+    # 'guitar',
+    # 'voice',
+    # 'bass',
+    # 'cello',
+    # 'violin',
+    # 'viola',
+    # 'piano',
+    # 'trombone',
+    # 'trumpet',
+    # 'saxophone',
+    # 'rhodes',
+    # 'moog',
+    # 'synth',
+    # 'birds',
+    # 'ambient',
+    # 'snare',
+    # 'kick',
+    # 'classical',
+    # 'cymbal',
+    # 'tom',
+    # 'triangle',
+    # 'electric',
+    # 'riff',
+    # 'heavy',
+    # 'trance',
+    # 'moan',
+    # 'spooky',
+    # 'scary',
+    # 'evil',
+    # 'xylophone',
+    # 'marimba',
+    # 'bells',
+    # 'bell',
+    # 'hihat',
+    # 'strings',
+    # 'acoustic',
+    # 'crash',
+    # 'ride',
+    # 'metal',
     'rock'
 ]
 
@@ -57,16 +57,16 @@ internet_archive_ids = [
 
 
 def master_iterator(freesound_api_key):
-    for archive_id in internet_archive_ids:
-        for meta in zounds.InternetArchive(archive_id):
-            yield meta
-
-    for meta in zounds.PhatDrumLoops():
+    for meta in list(zounds.PhatDrumLoops())[:3]:
         yield meta
 
     for query in queries:
         for meta in zounds.FreeSoundSearch(
-                freesound_api_key, query, n_results=30, delay=1.0):
+                freesound_api_key, query, n_results=3, delay=1.0):
+            yield meta
+
+    for archive_id in internet_archive_ids:
+        for meta in list(zounds.InternetArchive(archive_id))[:1]:
             yield meta
 
 
@@ -80,5 +80,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     for meta in master_iterator(args.freesound_key):
-        print meta
-        soundalike_client.add_sound({'uri': meta.uri.url})
+        data = dict(**meta.__dict__)
+        data['uri'] = meta.uri.url
+        print data
+        soundalike_client.add_sound(data)
