@@ -3,7 +3,7 @@ import zounds
 from zounds.spectral import apply_scale
 
 samplerate = zounds.SR11025()
-BaseModel = zounds.resampled(resample_to=samplerate, store_resampled=True)
+BaseModel = zounds.resampled(resample_to=samplerate)
 
 scale_bands = 96
 spectrogram_duration = 64
