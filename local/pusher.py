@@ -3,46 +3,46 @@ from config import soundalike_client
 import argparse
 
 queries = [
-    # 'drums',
-    # 'guitar',
-    # 'voice',
-    # 'bass',
-    # 'cello',
-    # 'violin',
-    # 'viola',
-    # 'piano',
-    # 'trombone',
-    # 'trumpet',
-    # 'saxophone',
-    # 'rhodes',
-    # 'moog',
-    # 'synth',
-    # 'birds',
-    # 'ambient',
-    # 'snare',
-    # 'kick',
-    # 'classical',
-    # 'cymbal',
-    # 'tom',
-    # 'triangle',
-    # 'electric',
-    # 'riff',
-    # 'heavy',
-    # 'trance',
-    # 'moan',
-    # 'spooky',
-    # 'scary',
-    # 'evil',
-    # 'xylophone',
-    # 'marimba',
-    # 'bells',
-    # 'bell',
-    # 'hihat',
-    # 'strings',
-    # 'acoustic',
-    # 'crash',
-    # 'ride',
-    # 'metal',
+    'drums',
+    'guitar',
+    'voice',
+    'bass',
+    'cello',
+    'violin',
+    'viola',
+    'piano',
+    'trombone',
+    'trumpet',
+    'saxophone',
+    'rhodes',
+    'moog',
+    'synth',
+    'birds',
+    'ambient',
+    'snare',
+    'kick',
+    'classical',
+    'cymbal',
+    'tom',
+    'triangle',
+    'electric',
+    'riff',
+    'heavy',
+    'trance',
+    'moan',
+    'spooky',
+    'scary',
+    'evil',
+    'xylophone',
+    'marimba',
+    'bells',
+    'bell',
+    'hihat',
+    'strings',
+    'acoustic',
+    'crash',
+    'ride',
+    'metal',
     'rock'
 ]
 
@@ -57,16 +57,16 @@ internet_archive_ids = [
 
 
 def master_iterator(freesound_api_key):
-    for meta in list(zounds.PhatDrumLoops())[:3]:
-        yield meta
-
-    for query in queries:
-        for meta in zounds.FreeSoundSearch(
-                freesound_api_key, query, n_results=3, delay=1.0):
-            yield meta
+    # for meta in zounds.PhatDrumLoops():
+    #     yield meta
+    #
+    # for query in queries:
+    #     for meta in zounds.FreeSoundSearch(
+    #             freesound_api_key, query, n_results=20, delay=1.0):
+    #         yield meta
 
     for archive_id in internet_archive_ids:
-        for meta in list(zounds.InternetArchive(archive_id))[:1]:
+        for meta in zounds.InternetArchive(archive_id):
             yield meta
 
 

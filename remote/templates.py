@@ -62,6 +62,7 @@ ITEM_TEMPLATE = '''
 <li>
     <div>
         <h3><a href={web_url}>{web_url}</a></h3>
+        <h4><a href={_id}>{_id}</a></h4>
         <img class="spectrogram" src={bark} height=200 />
         <div>from {start:.2f} to {end:.2f} seconds</div>
         <br/>

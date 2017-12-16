@@ -125,6 +125,7 @@ def learn(epochs=500, nsamples=int(1e5), init_weights=False):
     print 'computing learned features'
     snd_class = with_hash(_id)
     for snd in snd_class:
+        print snd._id
         print snd.hashed.shape
 
     return _id
