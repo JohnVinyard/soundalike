@@ -1,7 +1,9 @@
+from __future__ import print_function
 import zounds
 import urllib
 import urlparse
 import base64
+import sys
 
 
 class Code(object):
@@ -19,6 +21,7 @@ class Code(object):
 
     @classmethod
     def from_encoded(cls, code):
+        code = urllib.unquote(code)
         return Code(base64.urlsafe_b64decode(code))
 
     @classmethod
