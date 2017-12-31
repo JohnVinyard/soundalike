@@ -10,9 +10,38 @@ HTML_TEMPLATE = '''
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script type="text/javascript">
         $(function() {{
+
             $('.spectrogram').click(function() {{
                 $(this).siblings('audio')[0].play();
             }});
+
+            function isScrolledIntoView(elem)
+            {{
+                var docViewTop = $(window).scrollTop();
+                var docViewBottom = docViewTop + $(window).height();
+
+                var elemTop = $(elem).offset().top;
+                var elemBottom = elemTop + $(elem).height();
+
+                return elemTop <= docViewBottom;
+            }}
+
+            function loadResults() {{
+                $('.search-result').not('.loaded').each(function(index) {{
+                    var elem = $(this).get(0);
+                    if(isScrolledIntoView(elem)) {{
+                        $(this)
+                            .find('audio, .spectrogram')
+                            .attr('src', function() {{
+                                return $(this).attr('data-src');
+                            }});
+                        $(this).addClass('loaded');
+                    }}
+                }});
+            }}
+
+            loadResults();
+            $(window).scroll(loadResults);
         }});
     </script>
     <style type="text/css">
@@ -60,13 +89,13 @@ HTML_TEMPLATE = '''
 
 ITEM_TEMPLATE = '''
 <li>
-    <div>
+    <div class="search-result">
         <h3><a href={web_url}>{web_url}</a></h3>
         <h4><a href={_id}>{_id}</a></h4>
-        <img class="spectrogram" src={bark} height=200 />
+        <img class="spectrogram" data-src={bark} height=200 />
         <div>from {start:.2f} to {end:.2f} seconds</div>
         <br/>
-        <audio src={audio} controls tabindex={tabindex}></audio>
+        <audio data-src={audio} controls tabindex={tabindex}></audio>
         <div>
             <a href="{search}">similar to this</a>
         </div>

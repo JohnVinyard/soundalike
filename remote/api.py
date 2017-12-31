@@ -214,7 +214,7 @@ class SearchResource(object):
         try:
             n_results = int(req.params['nresults'])
         except (KeyError, TypeError, ValueError):
-            n_results = 10
+            n_results = 50
 
         if code is None:
             results = self.index.random_search(

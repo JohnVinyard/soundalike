@@ -11,7 +11,11 @@ from common.model import \
     SoundWithNoSettings, spectrogram_duration, scale_bands, anchor_slice
 from common.soundalike_client import SoundalikeClient
 
-soundalike_client = SoundalikeClient('http', environ['SOUNDALIKE_REMOTE'])
+soundalike_client = SoundalikeClient(
+    'http',
+    environ['SOUNDALIKE_REMOTE'],
+    feature_cache='/home/user/feature_cache',
+    never_cache=set(['hashed']))
 
 
 class ModelSettings(ff.PersistenceSettings):

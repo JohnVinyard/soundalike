@@ -7,7 +7,7 @@ import zounds
 from scipy.signal import resample
 from torch import nn
 from zounds.learn import Conv2d
-from multiprocessing.pool import Pool, cpu_count
+from multiprocessing.pool import Pool, cpu_count, ThreadPool
 
 from autoencoder import EmbeddingPipeline, most_recent_id
 from config import \
@@ -124,9 +124,14 @@ def learn(epochs=500, nsamples=int(1e5), init_weights=False):
 
     print 'computing learned features'
     snd_class = with_hash(_id)
-    for snd in snd_class:
+    tpool = ThreadPool(4)
+
+    def compute_hashed(snd):
         print snd._id
         print snd.hashed.shape
+        print snd.pca.shape
+
+    tpool.map(compute_hashed, snd_class)
 
     return _id
 
@@ -143,16 +148,25 @@ def with_hash(most_recent_autoencoder_id=None):
     if most_recent_autoencoder_id is None:
         most_recent_autoencoder_id = most_recent_id()
 
+    learned = EmbeddingPipeline(_id=most_recent_autoencoder_id)
+
     class Snd(Sound):
         embedding = zounds.ArrayWithUnitsFeature(
             zounds.Learned,
-            learned=EmbeddingPipeline(_id=most_recent_autoencoder_id),
+            learned=learned,
             pipeline_func=lambda x: x.pipeline[:-1],
             needs=Sound.ls)
 
         hashed = zounds.ArrayWithUnitsFeature(
             zounds.Learned,
-            learned=EmbeddingPipeline(_id=most_recent_autoencoder_id),
+            learned=learned,
+            needs=Sound.ls,
+            store=True)
+
+        pca = zounds.ArrayWithUnitsFeature(
+            zounds.Learned,
+            learned=learned,
+            pipeline_func=lambda x: x.pca_pipeline,
             needs=Sound.ls,
             store=True)
 

@@ -1,7 +1,8 @@
 import zounds
-from config import Sound
+from learner import with_hash, Network
 
 if __name__ == '__main__':
+    Sound = with_hash()
     app = zounds.ZoundsApp(
         model=Sound,
         audio_feature=Sound.ogg,

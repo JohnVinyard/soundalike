@@ -6,12 +6,22 @@ import json
 import httplib
 import urllib
 import blosc
+import lmdb
 
 
 class SoundalikeClient(object):
-    def __init__(self, scheme, host):
+    def __init__(self, scheme, host, feature_cache=None, never_cache=set()):
+        self.never_cache = never_cache
         self.host = host
         self.scheme = scheme
+        self.env = None
+        if feature_cache:
+            self.env = lmdb.open(
+                feature_cache,
+                map_size=1e10,
+                writemap=True,
+                map_async=True,
+                metasync=True)
 
     def _uri(self, path):
         result = urlparse.ParseResult(
@@ -85,14 +95,30 @@ class SoundalikeClient(object):
         return int(resp.headers['Content-Length'])
 
     def get_sound_feature(self, _id, feature):
-        resp = requests.get(
-            self._sound_feature_uri(_id, feature),
-            headers={'Accept': 'application/octet-stream'})
-        resp.raise_for_status()
-        if resp.headers['Content-Type'] == 'application/octet-stream':
-            return blosc.decompress(resp.content)
-        else:
-            return resp.content
+        cache_key = '{_id}:{feature}'.format(**locals())
+        fetched_data = None
+
+        # check if the feature exists locally
+        if self.env and feature not in self.never_cache:
+            with self.env.begin() as txn:
+                fetched_data = txn.get(cache_key)
+
+        # make an HTTP request, either because the feature isn't cached locally
+        # or caching isn't turned on
+        if not fetched_data:
+            resp = requests.get(
+                self._sound_feature_uri(_id, feature),
+                headers={'Accept': 'application/octet-stream'})
+            resp.raise_for_status()
+            fetched_data = resp.content
+            if resp.headers['Content-Type'] == 'application/octet-stream':
+                fetched_data = blosc.decompress(fetched_data)
+            # write the fetched data back to the cache
+            if self.env and feature not in self.never_cache:
+                with self.env.begin(write=True) as txn:
+                    txn.put(cache_key, fetched_data)
+
+        return fetched_data
 
     def set_sound_feature(self, _id, feature, data):
 

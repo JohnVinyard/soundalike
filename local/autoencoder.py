@@ -1,6 +1,6 @@
 import featureflow as ff
 import zounds
-
+from sklearn.decomposition import PCA
 from config import AutoencoderSettings as Settings, spectrogram_duration
 
 anchor_slice = slice(spectrogram_duration, spectrogram_duration * 2)
@@ -28,11 +28,19 @@ class EmbeddingPipeline(BasePipeline, Settings):
         bits=ff.Var('bits'),
         needs=unitnorm)
 
-    # TODO: I should have two pipelines, one for the simhash, and the other for
-    # PCA
+    pca = ff.PickleFeature(
+        zounds.SklearnModel,
+        model=PCA(n_components=2),
+        needs=unitnorm)
+
     pipeline = ff.PickleFeature(
         zounds.PreprocessingPipeline,
         needs=(scaled, embedding, unitnorm, simhash),
+        store=True)
+
+    pca_pipeline = ff.PickleFeature(
+        zounds.PreprocessingPipeline,
+        needs=(scaled, embedding, unitnorm, pca),
         store=True)
 
 

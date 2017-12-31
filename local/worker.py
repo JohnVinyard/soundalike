@@ -2,6 +2,7 @@ import urllib
 from autoencoder import most_recent_id, NoTrainedModelException
 from config import Sound, soundalike_client
 from learner import with_hash, Network
+import zounds
 
 
 def work():
@@ -25,4 +26,13 @@ def work():
 
 
 if __name__ == '__main__':
-    work()
+    new_id = most_recent_id()
+    try:
+        cls = with_hash(new_id)
+    except NoTrainedModelException:
+        cls = Sound
+
+    mn = zounds.NSynth(path='/home/user/Downloads')
+    for meta in mn:
+        cls.process(meta=meta, _id=meta.uri.url)
+        print 'check it out at', urllib.quote(meta.uri.url, safe='')

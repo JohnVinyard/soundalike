@@ -79,7 +79,14 @@ if __name__ == '__main__':
         help='The FreeSound API key')
     args = parser.parse_args()
 
-    for meta in master_iterator(args.freesound_key):
+    # for meta in master_iterator(args.freesound_key):
+    #     data = dict(**meta.__dict__)
+    #     data['uri'] = meta.uri.url
+    #     print data
+    #     soundalike_client.add_sound(data)
+
+    mn = zounds.MusicNet(path='/home/user/Downloads')
+    for meta in mn:
         data = dict(**meta.__dict__)
         data['uri'] = meta.uri.url
         print data

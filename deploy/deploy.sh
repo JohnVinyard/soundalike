@@ -2,6 +2,6 @@
 
 eval "$(docker-machine env soundalike)"
 echo "building"
-docker-compose --verbose build --force-rm
+docker-compose build --force-rm
 echo "starting up"
-docker-compose --verbose up
+docker-compose up
