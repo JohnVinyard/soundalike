@@ -2,6 +2,7 @@ import featureflow as ff
 import zounds
 from sklearn.decomposition import PCA
 from config import AutoencoderSettings as Settings, spectrogram_duration
+import numpy as np
 
 anchor_slice = slice(spectrogram_duration, spectrogram_duration * 2)
 
@@ -33,6 +34,12 @@ class EmbeddingPipeline(BasePipeline, Settings):
         model=PCA(n_components=2),
         needs=unitnorm)
 
+    # scale the PCA values to look like geo-coordinates
+    geo_scaled = ff.PickleFeature(
+        zounds.Multiply,
+        factor=np.array([90, 180]),
+        needs=pca)
+
     pipeline = ff.PickleFeature(
         zounds.PreprocessingPipeline,
         needs=(scaled, embedding, unitnorm, simhash),
@@ -40,7 +47,7 @@ class EmbeddingPipeline(BasePipeline, Settings):
 
     pca_pipeline = ff.PickleFeature(
         zounds.PreprocessingPipeline,
-        needs=(scaled, embedding, unitnorm, pca),
+        needs=(scaled, embedding, unitnorm, pca, geo_scaled),
         store=True)
 
 

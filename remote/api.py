@@ -7,6 +7,7 @@ import blosc
 import time
 import zounds
 import sys
+import requests
 
 import falcon
 
@@ -138,7 +139,7 @@ class SoundFeatureResource(object):
                 resp.set_header(k, v)
 
             # TODO: Can I fold this into DecoderSelector somehow?
-            if feature.key != 'hashed':
+            if feature.key != 'hashed' and feature.key != 'pca':
                 resp.set_header('Cache-Control', 'max-age=86400')
 
             resp.status = httplib.OK
@@ -189,6 +190,43 @@ def transform_search_result(result, req, nresults):
             req=req)),
         **extra_data
     )
+
+
+class MapResource(object):
+    def __init__(self):
+        super(MapResource, self).__init__()
+
+    def on_get(self, req, resp):
+        es_resp = requests.get(
+            'http://elasticsearch:9200/segments/_search',
+            headers={'Content-Type': 'application/json'},
+            data=json.dumps({
+                'size': 100,
+                'query': {
+                    'bool': {
+                        'must': {
+                            'match_all': {}
+                        },
+                        'filter': {
+                            'geo_bounding_box': {
+                                'location': {
+                                    'top_left': {
+                                        'lat': 85,
+                                        'lon': -175
+                                    },
+                                    'bottom_right': {
+                                        'lat': -85,
+                                        'lon': 175
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }))
+
+        resp.body = es_resp.content
+        resp.set_header('Content-Type', 'application/json')
 
 
 class SearchResource(object):
@@ -273,6 +311,7 @@ api.add_route('/sounds/{_id}', SoundResource())
 api.add_route('/sounds/{_id}/{feature}', SoundFeatureResource())
 api.add_route('/search', SearchResource())
 api.add_route('/search/{code}', SearchResource())
+api.add_route('/map/', MapResource())
 
 # secure endpoints
 api.add_route('/tasks/sounds/next', SoundQueueResource())

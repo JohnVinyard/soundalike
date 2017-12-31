@@ -1,5 +1,5 @@
 FROM zounds
+RUN pip install blosc
 COPY remote/*.py remote/
 COPY common/*.py common/
-RUN pip install blosc
 CMD cd remote && python indexer.py

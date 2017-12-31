@@ -56,12 +56,20 @@ class WebTimeSlice(zounds.TimeSlice):
 
         super(WebTimeSlice, self).__init__(duration=duration, start=start)
 
+    @property
+    def start_seconds(self):
+        return self.start / ONE_SECOND
+
+    @property
+    def duration_seconds(self):
+        return self.duration / ONE_SECOND
+
     def to_query_string(self):
         q = dict()
         if self.start:
-            q['start'] = self.start / ONE_SECOND
+            q['start'] = self.start_seconds
         if self.duration:
-            q['duration'] = self.duration / ONE_SECOND
+            q['duration'] = self.duration_seconds
         return q
 
 
