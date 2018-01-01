@@ -64,6 +64,12 @@ class WebTimeSlice(zounds.TimeSlice):
     def duration_seconds(self):
         return self.duration / ONE_SECOND
 
+    @classmethod
+    def from_seconds(cls, start, duration):
+        start = zounds.Picoseconds(int(start * 1e12))
+        duration = zounds.Picoseconds(int(duration * 1e12))
+        return WebTimeSlice(zounds.TimeSlice(duration=duration, start=start))
+
     def to_query_string(self):
         q = dict()
         if self.start:

@@ -8,6 +8,7 @@ import time
 import zounds
 import sys
 import requests
+import numpy as np
 
 import falcon
 
@@ -196,7 +197,39 @@ class MapResource(object):
     def __init__(self):
         super(MapResource, self).__init__()
 
+    def _transform_result(self, x, request):
+        output = dict(x['_source'])
+        sound_id = output['sound_id']
+        ts = WebTimeSlice.from_seconds(output['start'], output['duration'])
+        output['audio_uri'] = str(FeatureUri(
+            _id=sound_id,
+            timeslice=ts,
+            feature='ogg',
+            req=request))
+        return output
+
     def on_get(self, req, resp):
+        if 'text/html' in req.get_header('Accept'):
+            with open('map.js', 'r') as jsfile:
+                js = jsfile.read()
+
+            with open('map.html', 'r') as htmlfile:
+                html = htmlfile.read()
+
+            html = html.replace('//SCRIPT', js)
+            resp.body = html
+            resp.set_header('Content-Type', 'text/html')
+            return
+
+        # TODO: choose a random bounding box
+        # top_left = (85, -175)
+        # bottom_right = (-85, 175)
+
+        top_left = np.random.uniform([85, -175], [-85, 175], (2,))
+        size = np.random.randint(50, 100)
+        bottom_right = top_left + (size * np.array([-1, 1]))
+
+        # TODO: factor out into an elastic search client
         es_resp = requests.get(
             'http://elasticsearch:9200/segments/_search',
             headers={'Content-Type': 'application/json'},
@@ -211,12 +244,12 @@ class MapResource(object):
                             'geo_bounding_box': {
                                 'location': {
                                     'top_left': {
-                                        'lat': 85,
-                                        'lon': -175
+                                        'lat': top_left[0],
+                                        'lon': top_left[1]
                                     },
                                     'bottom_right': {
-                                        'lat': -85,
-                                        'lon': 175
+                                        'lat': bottom_right[0],
+                                        'lon': bottom_right[1]
                                     }
                                 }
                             }
@@ -225,7 +258,12 @@ class MapResource(object):
                 }
             }))
 
-        resp.body = es_resp.content
+        output = map(
+            lambda x: self._transform_result(x, req),
+            es_resp.json()['hits']['hits'])
+        resp.body = json.dumps({
+            'results': output
+        })
         resp.set_header('Content-Type', 'application/json')
 
 
