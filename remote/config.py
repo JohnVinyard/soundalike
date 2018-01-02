@@ -56,10 +56,5 @@ class Sound(SoundWithNoSettings, ModelSettings):
         needs=SoundWithNoSettings.ls,
         store=True)
 
-    pca = zounds.ArrayWithUnitsFeature(
-        IdentityNode,
-        needs=SoundWithNoSettings.ls,
-        store=True)
-
 
 print('done with config')

@@ -130,7 +130,6 @@ def learn(epochs=500, nsamples=int(1e5), init_weights=False):
     def compute_hashed(snd):
         print snd._id
         print snd.hashed.shape
-        print snd.pca.shape
 
     tpool.map(compute_hashed, snd_class)
 
@@ -161,13 +160,6 @@ def with_hash(most_recent_autoencoder_id=None):
         hashed = zounds.ArrayWithUnitsFeature(
             zounds.Learned,
             learned=learned,
-            needs=Sound.ls,
-            store=True)
-
-        pca = zounds.ArrayWithUnitsFeature(
-            zounds.Learned,
-            learned=learned,
-            pipeline_func=lambda x: x.pca_pipeline,
             needs=Sound.ls,
             store=True)
 

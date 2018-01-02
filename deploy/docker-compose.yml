@@ -1,14 +1,6 @@
 version: '2'
 
 services:
-  elasticsearch:
-    build: ./elasticsearch
-    volumes:
-      - data-volume:/var/lib/data
-    ports:
-      - "9200:9200"
-      - "9300:9300"
-
   redis:
     build: ./redis
     ports:

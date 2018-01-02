@@ -1,5 +1,4 @@
 import urlparse
-import os
 
 HTML_TEMPLATE = '''
 <!DOCTYPE html>
