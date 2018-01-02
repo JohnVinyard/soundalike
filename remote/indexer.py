@@ -36,7 +36,8 @@ def create_elasticsearch_index():
             uri = 'http://elasticsearch:9200/segments/segment/{_id}' \
                 .format(**locals())
             doc = {
-                'location': list(data),
+                # note that the array is in the order lon, lat
+                'location': list(data)[::-1],
                 'sound_id': snd._id,
                 'start': wts.start_seconds,
                 'duration': wts.duration_seconds
@@ -51,23 +52,28 @@ def create_elasticsearch_index():
             print(resp.content, file=sys.stderr)
 
 
-if __name__ == '__main__':
+def main():
+    with hamming_index(config.Sound, index_id) as index:
+        for snd in config.Sound:
+            try:
+                index.add(snd._id)
+                print('indexed {_id}'.format(_id=snd._id), file=sys.stderr)
+            except Exception as e:
+                print('indexing error {e}'.format(e=e))
 
+    HammingIndexPath.clean_old(keep_past=2)
+
+    try:
+        create_elasticsearch_index()
+    except Exception as e:
+        print(e, file=sys.stderr)
+
+if __name__ == '__main__':
     for index_id in config.soundalike_client \
             .poll_for_index_tasks(frequency_seconds=10):
-        reload(config)
-
-        with hamming_index(config.Sound, index_id) as index:
-            for snd in config.Sound:
-                try:
-                    index.add(snd._id)
-                    print('indexed {_id}'.format(_id=snd._id), file=sys.stderr)
-                except Exception as e:
-                    print('indexing error {e}'.format(e=e))
-
-        HammingIndexPath.clean_old(keep_past=2)
-
         try:
-            create_elasticsearch_index()
+            reload(config)
+            main()
         except Exception as e:
-            print(e, file=sys.stderr)
+            print('indexer.py Error', e, file=sys.stderr)
+

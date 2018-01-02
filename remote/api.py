@@ -8,11 +8,11 @@ import time
 import zounds
 import sys
 import requests
-import numpy as np
+from index import HammingIndexPath
 
 import falcon
 
-from config import Sound, most_recent_id, REDIS_CLIENT, DummyFeatureAccessError
+from config import Sound, REDIS_CLIENT, DummyFeatureAccessError
 from helpers import \
     WebTimeSlice, FeatureUri, SoundUri, SearchUri, Code, RandomSearchUri
 from index import hamming_index
@@ -63,11 +63,20 @@ class TrainedModelsResource(object):
         REDIS_CLIENT.set('trainedmodel', trained_model_id)
         resp.status = httplib.CREATED
 
+    def on_get(self, req, resp):
+        resp.body = json.dumps({'id': REDIS_CLIENT.get('trainedmodel')})
+        resp.set_header('Content-Type', 'application/json')
+
 
 class IndexesResource(object):
     def on_put(self, req, resp, index_id):
         REDIS_CLIENT.lpush('index', index_id)
         resp.status = httplib.ACCEPTED
+
+    def on_get(self, req, resp):
+        files = HammingIndexPath.indices()
+        resp.body = json.dumps({'indices': files})
+        resp.set_header('Content-Type', 'application/json')
 
 
 class SoundResource(object):
@@ -199,6 +208,9 @@ class MapResource(object):
 
     def _transform_result(self, x, request):
         output = dict(x['_source'])
+        # since coordinates are stored in lon, lat order, reverse them such
+        # that they're in lat, lon order
+        output['location'] = output['location'][::-1]
         sound_id = output['sound_id']
         ts = WebTimeSlice.from_seconds(output['start'], output['duration'])
         output['audio_uri'] = str(FeatureUri(
@@ -221,13 +233,8 @@ class MapResource(object):
             resp.set_header('Content-Type', 'text/html')
             return
 
-        # TODO: choose a random bounding box
-        # top_left = (85, -175)
-        # bottom_right = (-85, 175)
-
-        top_left = np.random.uniform([85, -175], [-85, 175], (2,))
-        size = np.random.randint(50, 100)
-        bottom_right = top_left + (size * np.array([-1, 1]))
+        top_left = [float(x) for x in req.params['top_left'].split('|')]
+        bottom_right = [float(x) for x in req.params['bottom_right'].split('|')]
 
         # TODO: factor out into an elastic search client
         es_resp = requests.get(
@@ -275,7 +282,7 @@ class SearchResource(object):
     def _init_index(self):
         if self.index is None:
             print('initializing index')
-            self.index = hamming_index(Sound, most_recent_id())
+            self.index = hamming_index(Sound)
             return True
         return False
 
@@ -355,6 +362,8 @@ api.add_route('/map/', MapResource())
 api.add_route('/tasks/sounds/next', SoundQueueResource())
 api.add_route('/tasks/indexes/next', IndexQueueResource())
 api.add_route('/indexes/{index_id}', IndexesResource())
+api.add_route('/indexes/', IndexesResource())
 api.add_route('/trainedmodels/{trained_model_id}', TrainedModelsResource())
+api.add_route('/trainedmodels/', TrainedModelsResource())
 
 print(api, file=sys.stderr)

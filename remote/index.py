@@ -10,8 +10,17 @@ class HammingIndexPath(object):
         self.recent_id = recent_id
 
     @classmethod
-    def clean_old(cls, keep_past=2):
+    def indices(cls):
         files = sorted(glob.glob(os.path.join(base_path, 'index_*')))
+        return files
+
+    @classmethod
+    def most_recent_index(cls):
+        return cls.indices()[-1]
+
+    @classmethod
+    def clean_old(cls, keep_past=2):
+        files = cls.indices()
         # always keep the N newest indexes
         oldest = files[:-keep_past]
         for path in oldest:
@@ -23,11 +32,17 @@ class HammingIndexPath(object):
         return os.path.join(base_path, filename)
 
 
-def hamming_index(snd_cls, recent_id):
+def hamming_index(snd_cls, recent_id=None):
+
+    if recent_id:
+        path = str(HammingIndexPath(recent_id))
+    else:
+        path = HammingIndexPath.most_recent_index()
+
     return zounds.HammingIndex(
         snd_cls,
         snd_cls.hashed,
         version=snd_cls.hashed.version,
-        path=str(HammingIndexPath(recent_id)),
+        path=path,
         listen=False,
         web_url=lambda doc, ts: doc.meta['web_url'])

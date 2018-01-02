@@ -7,7 +7,7 @@ import httplib
 import urllib
 import blosc
 import lmdb
-
+from time import sleep
 
 class SoundalikeClient(object):
     def __init__(self, scheme, host, feature_cache=None, never_cache=set()):
@@ -45,7 +45,8 @@ class SoundalikeClient(object):
                 time.sleep(frequency_seconds)
 
     def next_sound_task(self):
-        resp = requests.delete(self._uri('/tasks/sounds/next'))
+        resp = self._retry(
+            lambda: requests.delete(self._uri('/tasks/sounds/next')))
         resp.raise_for_status()
         task = json.loads(resp.content)
         metadata = zounds.AudioMetaData(**task)
@@ -120,6 +121,26 @@ class SoundalikeClient(object):
 
         return fetched_data
 
+    def _retry(self, request_func, tries=3, wait=1.0):
+        """
+        Crude retry mechanism.
+
+        I should try something along the lines of:
+        http://www.coglib.com/~icordasc/blog/2014/12/retries-in-requests.html
+        """
+        t = 0
+        while t < tries:
+            try:
+                resp = request_func()
+                resp.raise_for_status()
+                return resp
+            except requests.HTTPError:
+                sleep(wait)
+                t += 1
+                if t < tries:
+                    continue
+                raise
+
     def set_sound_feature(self, _id, feature, data):
 
         try:
@@ -127,7 +148,8 @@ class SoundalikeClient(object):
         except TypeError:
             data = blosc.compress(data.getvalue(), typesize=32)
 
-        resp = requests.put(self._sound_feature_uri(_id, feature), data=data)
+        resp = self._retry(lambda: requests.put(
+            self._sound_feature_uri(_id, feature), data=data))
         resp.raise_for_status()
 
     def random_search(self, nresults=20, accept='application/json'):

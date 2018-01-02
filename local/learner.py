@@ -77,6 +77,7 @@ class Network(nn.Module):
 
 
 def access_log_spectrogram(snd):
+    print snd._id
     return snd.log_spectrogram
 
 

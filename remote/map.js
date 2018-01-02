@@ -1,3 +1,6 @@
+
+var pendingRequests = [];
+
 function SoundalikeClient() {
 
     this.fetchBinary = function(url) {
@@ -16,6 +19,7 @@ function SoundalikeClient() {
                 reject(this.status, xhr.statusText);
             };
             xhr.send();
+            pendingRequests.push(xhr);
         });
     };
 
@@ -33,62 +37,72 @@ function SoundalikeClient() {
 }
 
 
+var map;
+var markers = [];
 
-function addPoints(data, client, context) {
-    // get the minimum, maximum, and span of both dimensions
-    var xMin = 0;
-    var xMax = 0;
-    var yMin = 0;
-    var yMax = 0;
+var soundalikeClient = new SoundalikeClient();
+var context = new AudioContext();
 
-    for(var i = 0; i < data.results.length; i++) {
-        var x = data.results[i].location[0];
-        var y = data.results[i].location[1];
-        if(x < xMin) { xMin = x; }
-        if(x > xMax) { xMax = x; }
-        if(y < yMin) {yMin = y; }
-        if(y > yMax) { yMax = y; }
-    }
+function clearPoints() {
+    markers.forEach(function(marker) { marker.setMap(null); });
+    pendingRequests.forEach(function(req) { req.abort(); });
+    markers = [];
+    pendingRequests = [];
+}
 
-    var xSpan = xMax - xMin;
-    var ySpan = yMax - yMin;
+function loadPoints() {
 
-    $('#main').attr({
-        'viewBox': `${xMin} ${yMin} ${xSpan} ${ySpan}`,
-        'preserveAspectRatio': "none"
-    })
+    clearPoints();
+    var bounds = map.getBounds();
+    if(!bounds) { return; }
+    console.log(bounds);
 
-    var transformed = data.results;
+    var ne = bounds.getNorthEast();
+    var sw = bounds.getSouthWest();
+    console.log(ne, sw);
 
-    $('#main').empty();
+    var topLeft = `${ne.lat()}|${sw.lng()}`;
+    var bottomRight = `${sw.lat()}|${ne.lng()}`;
+    var queryData = {top_left: topLeft, bottom_right: bottomRight};
 
-    transformed.forEach(function(result) {
-        var cx = result.location[0];
-        var cy = result.location[1];
-        var r = 10;
-        var circle = document
-            .createElementNS('http://www.w3.org/2000/svg', 'circle');
-        circle.setAttribute('cx', result.location[0]);
-        circle.setAttribute('cy', result.location[1]);
-        circle.setAttribute('r', 1);
-        $('#main').append(circle);
-
-        client
-            .fetchAudio(result.audio_uri, context)
-            .then(function(audio) {
-                $(circle).click(function() {
-                    var source = context.createBufferSource();
-                    source.buffer = audio;
-                    source.connect(context.destination);
-                    source.start(0);
-                });
+    $.getJSON('/map', queryData).then(function(data) {
+        data.results.forEach(function(result) {
+            var marker = new google.maps.Marker({
+                position: new google.maps.LatLng(
+                    result.location[0], result.location[1]),
+                map: map
             });
+            markers.push(marker);
+            soundalikeClient
+                .fetchAudio(result.audio_uri, context)
+                .then(function(audio) {
+                    marker.addListener('click', function() {
+                        var source = context.createBufferSource();
+                        source.buffer = audio;
+                        source.connect(context.destination);
+                        source.start(0);
+                    });
+                });
+        });
+    });
+}
+
+function initMap() {
+    map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 2,
+        center: new google.maps.LatLng(2.8, -187.3),
+        mapTypeId: 'terrain'
+    });
+
+    window.map = map;
+
+    map.addListener('idle', function() {
+        loadPoints();
     });
 }
 
 $(function() {
-    var soundalikeClient = new SoundalikeClient();
-    var audioContext = new AudioContext();
+
     var resp = $
         .getJSON('/map')
         .then(function(data) {

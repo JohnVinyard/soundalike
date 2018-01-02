@@ -32,7 +32,26 @@ if __name__ == '__main__':
     except NoTrainedModelException:
         cls = Sound
 
-    mn = zounds.NSynth(path='/home/user/Downloads')
-    for meta in mn:
-        cls.process(meta=meta, _id=meta.uri.url)
-        print 'check it out at', urllib.quote(meta.uri.url, safe='')
+    archive_ids = [
+        'Kevin_Gates_-_By_Any_Means-2014',
+        'Greatest_Speeches_of_the_20th_Century',
+        'Chance_The_Rapper_-_Coloring_Book',
+        'ChopinWorksForPiano'
+    ]
+
+    for _id in archive_ids:
+        for meta in zounds.InternetArchive(_id):
+            print meta
+            cls.process(meta=meta, _id=meta.uri.url)
+
+    # mn = zounds.MusicNet(path='/home/user/Downloads')
+    # for meta in mn:
+    #     print meta
+    #     cls.process(meta=meta, _id=meta.uri.url)
+    #
+    # ns = zounds.NSynth(path='/home/user/Downloads')
+    # for meta in mn:
+    #     print meta
+    #     cls.process(meta=meta, _id=meta.uri.url)
+    #
+    #
