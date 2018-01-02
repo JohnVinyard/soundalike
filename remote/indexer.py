@@ -53,7 +53,7 @@ def create_elasticsearch_index():
 
 
 def main():
-    with hamming_index(config.Sound, index_id) as index:
+    with hamming_index(config.Sound, index_id, writeonly=True) as index:
         for snd in config.Sound:
             try:
                 index.add(snd._id)

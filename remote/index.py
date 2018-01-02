@@ -32,7 +32,7 @@ class HammingIndexPath(object):
         return os.path.join(base_path, filename)
 
 
-def hamming_index(snd_cls, recent_id=None):
+def hamming_index(snd_cls, recent_id=None, writeonly=False):
 
     if recent_id:
         path = str(HammingIndexPath(recent_id))
@@ -45,4 +45,5 @@ def hamming_index(snd_cls, recent_id=None):
         version=snd_cls.hashed.version,
         path=path,
         listen=False,
-        web_url=lambda doc, ts: doc.meta['web_url'])
+        web_url=lambda doc, ts: doc.meta['web_url'],
+        writeonly=writeonly)
