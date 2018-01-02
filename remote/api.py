@@ -181,15 +181,13 @@ def transform_search_result(result, req, nresults):
         audio=str(FeatureUri(
             quoted_id=quoted_id,
             feature='ogg',
-            timeslice_query_string=qs,
             req=req)),
         meta=str(FeatureUri(
             quoted_id=quoted_id,
             feature='meta',
             timeslice_query_string=qs,
             req=req)),
-        **extra_data
-    )
+        **extra_data)
 
 
 class DummyIndex(object):

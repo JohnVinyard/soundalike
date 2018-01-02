@@ -3,7 +3,11 @@
         <h3><a href={web_url}>{origin}</a></h3>
         <div class="spectrogram">
             <img data-src={bark} height=200 />
-            <audio data-src={audio} tabindex={tabindex}></audio>
+            <audio
+                    data-src="{audio}"
+                    data-start="{start}"
+                    data-duration="{duration}"
+                    tabindex={tabindex}></audio>
         </div>
         <div>from {start:.2f} to {end:.2f} seconds</div>
         <ul>

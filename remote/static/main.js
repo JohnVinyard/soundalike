@@ -16,12 +16,18 @@ function SoundalikeClient() {
                 reject(this.status, xhr.statusText);
             };
             xhr.send();
-            pendingRequests.push(xhr);
         });
     };
 
+    var audioCache = {};
+
     this.fetchAudio = function(url, context) {
-        return this
+        var cached = audioCache[url];
+        if(cached !== undefined) {
+            return cached;
+        }
+
+        var audioBufferPromise = this
             .fetchBinary(url)
             .then(function(data) {
                 return new Promise(function(resolve, reject) {
@@ -30,6 +36,8 @@ function SoundalikeClient() {
                     });
                 });
             });
+         audioCache[url] = audioBufferPromise;
+         return audioBufferPromise;
     }
 }
 
@@ -46,6 +54,9 @@ function isScrolledIntoView(elem)
 
 $(function() {
 
+    var soundalikeClient = new SoundalikeClient();
+    var context = new AudioContext();
+
     $('.spectrogram img').click(function() {
         $(this).siblings('audio')[0].play();
     });
@@ -53,14 +64,31 @@ $(function() {
     function loadResults() {
         $('.search-result').not('.loaded').each(function(index) {
             var elem = $(this).get(0);
-            if(isScrolledIntoView(elem)) {
-                $(this)
-                    .find('audio, .spectrogram img')
-                    .attr('src', function() {
-                        return $(this).attr('data-src');
+            if(!isScrolledIntoView(elem)) { return; }
+
+            var img = $(this)
+                .find('.spectrogram img')
+                .attr('src', function() {
+                    return $(this).attr('data-src');
+                });
+
+            var audio = $(this).find('audio');
+            var audioSrc = audio.attr('data-src');
+            var start = parseFloat(audio.attr('data-start'));
+            var duration = parseFloat(audio.attr('data-duration'));
+
+            soundalikeClient
+                .fetchAudio(audioSrc, context)
+                .then(function(audioBuffer) {
+                    img.click(function() {
+                        var source = context.createBufferSource();
+                        source.buffer = audioBuffer;
+                        source.connect(context.destination);
+                        source.start(0, start, duration);
                     });
-                $(this).addClass('loaded');
-            }
+                });
+
+            $(this).addClass('loaded');
         });
     }
 
