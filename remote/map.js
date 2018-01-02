@@ -1,40 +1,7 @@
 
 var pendingRequests = [];
 
-function SoundalikeClient() {
 
-    this.fetchBinary = function(url) {
-        return new Promise(function(resolve, reject) {
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', url);
-            xhr.responseType = 'arraybuffer';
-            xhr.onload = function() {
-                if(this.status >= 200 && this.status < 300) {
-                    resolve(xhr.response);
-                } else {
-                    reject(this.status, xhr.statusText);
-                }
-            };
-            xhr.onerror = function() {
-                reject(this.status, xhr.statusText);
-            };
-            xhr.send();
-            pendingRequests.push(xhr);
-        });
-    };
-
-    this.fetchAudio = function(url, context) {
-        return this
-            .fetchBinary(url)
-            .then(function(data) {
-                return new Promise(function(resolve, reject) {
-                    context.decodeAudioData(data, function(buffer) {
-                        resolve(buffer);
-                    });
-                });
-            });
-    }
-}
 
 
 var map;

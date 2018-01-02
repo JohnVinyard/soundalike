@@ -1,0 +1,14 @@
+<li class="search-result-item">
+    <div class="search-result">
+        <h3><a href={web_url}>{origin}</a></h3>
+        <div class="spectrogram">
+            <img data-src={bark} height=200 />
+            <audio data-src={audio} tabindex={tabindex}></audio>
+        </div>
+        <div>from {start:.2f} to {end:.2f} seconds</div>
+        <ul>
+            <li><a href="{search}">similar to this</a></li>
+            <li><a href={_id}>download</a></li>
+        </ul>
+    </div>
+</li>

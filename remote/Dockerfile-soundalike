@@ -6,6 +6,8 @@ RUN pip install pillow blosc falcon gunicorn redis
 
 COPY remote/*.py remote/
 COPY common/*.py common/
+COPY remote/static/* remote/static/
+COPY remote/static/templates/* remote/static/templates/
 
 CMD gunicorn api:application \
     --bind 0.0.0.0:8000 --workers 4 --max-requests 1000 --chdir remote/
