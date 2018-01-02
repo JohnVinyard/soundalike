@@ -1,6 +1,8 @@
 import zounds
-from config import soundalike_client
+from autoencoder import most_recent_id, NoTrainedModelException
 import argparse
+from config import Sound
+from learner import with_hash, Network
 
 queries = [
     'drums',
@@ -57,17 +59,25 @@ internet_archive_ids = [
 
 
 def master_iterator(freesound_api_key):
-    # for meta in zounds.PhatDrumLoops():
-    #     yield meta
-    #
-    # for query in queries:
-    #     for meta in zounds.FreeSoundSearch(
-    #             freesound_api_key, query, n_results=20, delay=1.0):
-    #         yield meta
+    for meta in zounds.PhatDrumLoops():
+        yield meta
+
+    for query in queries:
+        for meta in zounds.FreeSoundSearch(
+                freesound_api_key, query, n_results=20, delay=1.0):
+            yield meta
 
     for archive_id in internet_archive_ids:
         for meta in zounds.InternetArchive(archive_id):
             yield meta
+
+    mn = zounds.MusicNet(path='/home/user/Downloads')
+    for meta in mn:
+        yield meta
+
+    ns = zounds.NSynth(path='/home/user/Downloads')
+    for meta in ns:
+        yield meta
 
 
 if __name__ == '__main__':
@@ -79,15 +89,11 @@ if __name__ == '__main__':
         help='The FreeSound API key')
     args = parser.parse_args()
 
-    # for meta in master_iterator(args.freesound_key):
-    #     data = dict(**meta.__dict__)
-    #     data['uri'] = meta.uri.url
-    #     print data
-    #     soundalike_client.add_sound(data)
+    new_id = most_recent_id()
+    try:
+        cls = with_hash(new_id)
+    except NoTrainedModelException:
+        cls = Sound
 
-    mn = zounds.MusicNet(path='/home/user/Downloads')
-    for meta in mn:
-        data = dict(**meta.__dict__)
-        data['uri'] = meta.uri.url
-        print data
-        soundalike_client.add_sound(data)
+    for meta in master_iterator(args.freesound_key):
+        cls.process(meta=meta, _id=meta.uri.url)

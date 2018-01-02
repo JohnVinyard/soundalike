@@ -7,7 +7,6 @@ import blosc
 import time
 import zounds
 import sys
-import requests
 from index import HammingIndexPath
 
 import falcon
@@ -29,10 +28,6 @@ class SoundsResource(object):
         resp.set_header('Content-Type', 'application/json')
         resp.body = json.dumps({'sounds': urls})
 
-    def on_post(self, req, resp):
-        REDIS_CLIENT.rpush('sound', req.stream.read())
-        resp.status = httplib.ACCEPTED
-
 
 class BaseTaskQueueResource(object):
     def __init__(self, redis_list_name):
@@ -46,11 +41,6 @@ class BaseTaskQueueResource(object):
         else:
             resp.body = task
             resp.status = httplib.OK
-
-
-class SoundQueueResource(BaseTaskQueueResource):
-    def __init__(self):
-        super(SoundQueueResource, self).__init__('sound')
 
 
 class IndexQueueResource(BaseTaskQueueResource):
@@ -284,10 +274,8 @@ api.add_route('/sounds/{_id}', SoundResource())
 api.add_route('/sounds/{_id}/{feature}', SoundFeatureResource())
 api.add_route('/search', SearchResource())
 api.add_route('/search/{code}', SearchResource())
-api.add_route('/map/', MapResource())
 
 # secure endpoints
-api.add_route('/tasks/sounds/next', SoundQueueResource())
 api.add_route('/tasks/indexes/next', IndexQueueResource())
 api.add_route('/indexes/{index_id}', IndexesResource())
 api.add_route('/indexes/', IndexesResource())

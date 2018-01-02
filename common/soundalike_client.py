@@ -1,13 +1,13 @@
 import requests
 import urlparse
 import time
-import zounds
 import json
 import httplib
 import urllib
 import blosc
 import lmdb
 from time import sleep
+
 
 class SoundalikeClient(object):
     def __init__(self, scheme, host, feature_cache=None, never_cache=set()):
@@ -44,18 +44,6 @@ class SoundalikeClient(object):
             except:
                 time.sleep(frequency_seconds)
 
-    def next_sound_task(self):
-        resp = self._retry(
-            lambda: requests.delete(self._uri('/tasks/sounds/next')))
-        resp.raise_for_status()
-        task = json.loads(resp.content)
-        metadata = zounds.AudioMetaData(**task)
-        metadata.uri = requests.Request('GET', url=metadata.uri)
-        return metadata
-
-    def poll_for_sound_tasks(self, frequency_seconds=1):
-        return self._poll(self.next_sound_task, frequency_seconds)
-
     def next_index_task(self):
         resp = requests.delete(self._uri('/tasks/indexes/next'))
         resp.raise_for_status()
@@ -71,11 +59,6 @@ class SoundalikeClient(object):
 
     def add_index(self, _id):
         resp = requests.put(self._uri('/indexes/{_id}'.format(**locals())))
-        resp.raise_for_status()
-
-    def add_sound(self, sound_metadata):
-        resp = requests.post(
-            self._uri('/sounds'), data=json.dumps(sound_metadata))
         resp.raise_for_status()
 
     def iter_sounds(self):
