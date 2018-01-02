@@ -14,7 +14,7 @@ import falcon
 from config import Sound, REDIS_CLIENT, DummyFeatureAccessError
 from helpers import \
     WebTimeSlice, FeatureUri, SoundUri, SearchUri, Code, RandomSearchUri
-from index import hamming_index
+from index import hamming_index, NoIndexesError
 from templates import render_html
 from decoder_selector import DecoderSelector
 
@@ -192,17 +192,46 @@ def transform_search_result(result, req, nresults):
     )
 
 
+class DummyIndex(object):
+    """
+    Stand-in null object for cases where no index has been initialized
+    """
+    def __init__(self):
+        super(DummyIndex, self).__init__()
+
+    def random_search(self, *args, **kwargs):
+        return zounds.SearchResults('', iter([]))
+
+    def search(self, *args, **kwargs):
+        return zounds.SearchResults('', iter([]))
+
+
 class SearchResource(object):
     def __init__(self):
         super(SearchResource, self).__init__()
         self.index = None
 
-    def _init_index(self):
-        if self.index is None:
-            print('initializing index')
+    @property
+    def hamming_index(self):
+        if self.index is not None:
+            return self.index
+
+        try:
             self.index = hamming_index(Sound)
-            return True
-        return False
+            return self.index
+        except NoIndexesError:
+            return DummyIndex()
+
+    def random_search(self, n_results):
+        return self.hamming_index.random_search(
+            n_results, multithreaded=True, sort=True)
+
+    def search(self, query, n_results):
+        return self.hamming_index.search(
+            query,
+            n_results,
+            multithreaded=True,
+            sort=True)
 
     def __del__(self):
         self.index.close()
@@ -210,16 +239,13 @@ class SearchResource(object):
     def on_get(self, req, resp, code=None):
         start = time.time()
 
-        did_initialize = self._init_index()
-
         try:
             n_results = int(req.params['nresults'])
         except (KeyError, TypeError, ValueError):
             n_results = 50
 
         if code is None:
-            results = self.index.random_search(
-                n_results, multithreaded=True, sort=True)
+            results = self.random_search(n_results)
         elif code.startswith('http'):
             # get the timeslice from the query string
             ts = WebTimeSlice(req)
@@ -231,26 +257,17 @@ class SearchResource(object):
             hashed = hashed[middlemost]
             # then construct a link from that hash
             new_code = list(Code.from_expanded_array(hashed[None, ...]))[0]
-            results = self.index.search(
-                new_code.raw.tostring(),
-                n_results,
-                multithreaded=True,
-                sort=True)
+            results = self.search(new_code.raw.tostring(), n_results)
         else:
-            results = self.index.search(
-                Code.from_encoded(code).raw,
-                n_results,
-                multithreaded=True,
-                sort=True)
+            results = self.search(Code.from_encoded(code).raw, n_results)
 
-        results = map(lambda x: transform_search_result(x, req, n_results),
-                      results)
+        results = map(
+            lambda x: transform_search_result(x, req, n_results), results)
 
         if 'text/html' in req.get_header('Accept'):
             end = time.time() - start
             resp.body = render_html(
                 results,
-                did_initialize,
                 end * 1000,
                 str(RandomSearchUri(req=req, nresults=n_results)))
             resp.set_header('Content-Type', 'text/html')
@@ -259,7 +276,6 @@ class SearchResource(object):
             resp.body = json.dumps(
                 {
                     'results': results,
-                    'initialize': did_initialize,
                     'time': end * 1000,
                     'random': str(RandomSearchUri(req=req, nresults=n_results))
                 })

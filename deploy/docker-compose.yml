@@ -21,7 +21,6 @@ services:
     depends_on:
         - zounds
         - redis
-        - elasticsearch
     links:
         - redis
 

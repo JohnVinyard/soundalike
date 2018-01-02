@@ -5,6 +5,10 @@ from config import base_path
 import os
 
 
+class NoIndexesError(Exception):
+    pass
+
+
 class HammingIndexPath(object):
     def __init__(self, recent_id):
         self.recent_id = recent_id
@@ -16,7 +20,10 @@ class HammingIndexPath(object):
 
     @classmethod
     def most_recent_index(cls):
-        return cls.indices()[-1]
+        try:
+            return cls.indices()[-1]
+        except IndexError:
+            raise NoIndexesError()
 
     @classmethod
     def clean_old(cls, keep_past=2):
@@ -33,7 +40,6 @@ class HammingIndexPath(object):
 
 
 def hamming_index(snd_cls, recent_id=None, writeonly=False):
-
     if recent_id:
         path = str(HammingIndexPath(recent_id))
     else:
@@ -42,7 +48,7 @@ def hamming_index(snd_cls, recent_id=None, writeonly=False):
     return zounds.HammingIndex(
         snd_cls,
         snd_cls.hashed,
-        version=snd_cls.hashed.version,
+        version='1',
         path=path,
         listen=False,
         web_url=lambda doc, ts: doc.meta['web_url'],

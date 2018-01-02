@@ -96,6 +96,10 @@ HTML_TEMPLATE = '''
             border-bottom: solid 1px #eee;
             padding: 10px;
         }}
+        #no-results {{
+            text-align: center;
+            margin-top:50px;
+        }}
     </style>
   </head>
   <body>
@@ -105,7 +109,6 @@ HTML_TEMPLATE = '''
             {items}
         </ul>
     </main>
-    <footer>search completed in {end:.2f}ms</footer>
   </body>
 </html>
 '''
@@ -127,6 +130,10 @@ ITEM_TEMPLATE = '''
 </li>
 '''
 
+NO_RESULTS_TEMPLATE = '''
+<div id="no-results"><h3>No Results</h3></div>
+'''
+
 
 def item_template(args):
     i, data = args
@@ -136,6 +143,8 @@ def item_template(args):
         tabindex=i + 1, **dict(**data))
 
 
-def render_html(results, did_initialize, end, random_search):
+def render_html(results, end, random_search):
     items = ''.join(map(item_template, enumerate(results)))
+    if not items:
+        items = NO_RESULTS_TEMPLATE
     return HTML_TEMPLATE.format(**locals())

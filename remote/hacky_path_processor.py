@@ -16,6 +16,9 @@ class PathProcessor(object):
     def process_request(self, req, resp):
         segments = list(split_path(req.path))
 
+        if not segments:
+            return
+
         if (segments[0] == 'sounds' or segments[0] == 'search') and len(segments) > 1:
 
             stored = filter(lambda x: x.store, Sound.iter_features())

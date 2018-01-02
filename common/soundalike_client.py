@@ -1,7 +1,6 @@
 import requests
 import urlparse
 import time
-import json
 import httplib
 import urllib
 import blosc
