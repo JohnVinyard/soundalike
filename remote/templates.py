@@ -1,4 +1,5 @@
-from itertools import repeat, izip
+import urlparse
+import os
 
 HTML_TEMPLATE = '''
 <!DOCTYPE html>
@@ -11,7 +12,7 @@ HTML_TEMPLATE = '''
     <script type="text/javascript">
         $(function() {{
 
-            $('.spectrogram').click(function() {{
+            $('.spectrogram img').click(function() {{
                 $(this).siblings('audio')[0].play();
             }});
 
@@ -31,7 +32,7 @@ HTML_TEMPLATE = '''
                     var elem = $(this).get(0);
                     if(isScrolledIntoView(elem)) {{
                         $(this)
-                            .find('audio, .spectrogram')
+                            .find('audio, .spectrogram img')
                             .attr('src', function() {{
                                 return $(this).attr('data-src');
                             }});
@@ -58,27 +59,50 @@ HTML_TEMPLATE = '''
             color: #f2eee2;
             padding: 20px;
         }}
+        header {{
+            position: fixed;
+            width:100%;
+            z-index:9999;
+            top: 0;
+            font-weight:1000;
+
+        }}
+        header button {{
+            float: right;
+            margin-right:40px;
+        }}
         main {{
             padding: 20px;
         }}
         a {{
             color: #f81b84;
         }}
-        ul {{
+        ul.search-results {{
+            margin-top: 60px;
             list-style: none;
             padding:0;
         }}
-        li {{
-            border-bottom: solid 1px #f5ce2b;
+        .search-result-item {{
             padding: 10px;
             margin-bottom: 10px;
+            background-color: #f8f7e8;
+            border-bottom: solid 2px #ddd;
+        }}
+        .spectrogram img {{
+            cursor: pointer;
+        }}
+        .spectrogram {{
+            background-color: #fcfbf2;
+            border-top: solid 1px: #eee;
+            border-bottom: solid 1px #eee;
+            padding: 10px;
         }}
     </style>
   </head>
   <body>
-    <header>Soundalike</header>
+    <header>Soundalike <button><a href="{random_search}">Random Search</button</a></header>
     <main>
-        <ul>
+        <ul class="search-results">
             {items}
         </ul>
     </main>
@@ -88,23 +112,18 @@ HTML_TEMPLATE = '''
 '''
 
 ITEM_TEMPLATE = '''
-<li>
+<li class="search-result-item">
     <div class="search-result">
-        <h3><a href={web_url}>{web_url}</a></h3>
-        <h4><a href={_id}>{_id}</a></h4>
-        <img class="spectrogram" data-src={bark} height=200 />
+        <h3><a href={web_url}>{origin}</a></h3>
+        <div class="spectrogram">
+            <img data-src={bark} height=200 />
+            <audio data-src={audio} tabindex={tabindex}></audio>
+        </div>
         <div>from {start:.2f} to {end:.2f} seconds</div>
-        <br/>
-        <audio data-src={audio} controls tabindex={tabindex}></audio>
-        <div>
-            <a href="{search}">similar to this</a>
-        </div>
-        <div>
-            <a href="{_id}">source file</a>
-        </div>
-        <div>
-            <a href="{random_search}">random search</a>
-        </div>
+        <ul>
+            <li><a href="{search}">similar to this</a></li>
+            <li><a href={_id}>download</a></li>
+        </ul>
     </div>
 </li>
 '''
@@ -112,13 +131,12 @@ ITEM_TEMPLATE = '''
 
 def item_template(args):
     i, data = args
-    result, rs = data
+    parsed = urlparse.urlparse(data['web_url'])
+    data['origin'] = parsed.netloc
     return ITEM_TEMPLATE.format(
-        tabindex=i + 1, **dict(random_search=rs, **result))
+        tabindex=i + 1, **dict(**data))
 
 
 def render_html(results, did_initialize, end, random_search):
-    rs = repeat(random_search)
-    data = izip(results, rs)
-    items = ''.join(map(item_template, enumerate(data)))
+    items = ''.join(map(item_template, enumerate(results)))
     return HTML_TEMPLATE.format(**locals())
