@@ -1,9 +1,10 @@
+from __future__ import print_function
 import zounds
 import glob
 import shutil
 from config import base_path
 import os
-
+import sys
 
 class NoIndexesError(Exception):
     pass
@@ -32,7 +33,7 @@ class HammingIndexPath(object):
         oldest = files[:-keep_past]
         for path in oldest:
             shutil.rmtree(path, ignore_errors=True)
-            print 'removed {path}'.format(**locals())
+            print('removed {path}'.format(**locals()))
 
     def __str__(self):
         filename = 'index_{recent_id}'.format(**self.__dict__)
@@ -45,11 +46,22 @@ def hamming_index(snd_cls, recent_id=None, writeonly=False):
     else:
         path = HammingIndexPath.most_recent_index()
 
+    def web_url(doc, ts):
+        url = doc.meta['web_url']
+        print(url, file=sys.stderr)
+        return url
+
+    def total_duration(doc, ts):
+        duration = doc.geom.dimensions[0].end / zounds.Seconds(1)
+        print(duration, file=sys.stderr)
+        return duration
+
     return zounds.HammingIndex(
         snd_cls,
         snd_cls.hashed,
         version='1',
         path=path,
         listen=False,
-        web_url=lambda doc, ts: doc.meta['web_url'],
-        writeonly=writeonly)
+        writeonly=writeonly,
+        web_url=web_url,
+        total_duration=total_duration)

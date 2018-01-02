@@ -1,4 +1,5 @@
 import urlparse
+import os
 
 file_cache = dict()
 
@@ -19,8 +20,12 @@ def get_file_contents(relative_path):
 
 def item_template(args):
     i, data = args
-    parsed = urlparse.urlparse(data['web_url'])
-    data['origin'] = parsed.netloc
+    parsed = urlparse.urlparse(data['_id'])
+    title = os.path.split(parsed.path)[-1]
+
+    data['title'] = title
+    data['start_ratio'] = (data['start'] / data['total_duration']) * 100
+    data['duration_ratio'] = (data['duration'] / data['total_duration']) * 100
     template = get_file_contents('static/templates/result.html')
     return template.format(
         tabindex=i + 1, **dict(**data))

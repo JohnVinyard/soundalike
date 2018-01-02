@@ -1,18 +1,43 @@
 <li class="search-result-item">
-    <div class="search-result">
-        <h3><a href={web_url}>{origin}</a></h3>
+    <div class="search-result" data-total-duration="{total_duration}">
+        <h3><a href={web_url}>{title}</a></h3>
         <div class="spectrogram">
             <img data-src={bark} height=200 />
             <audio
-                    data-src="{audio}"
-                    data-start="{start}"
-                    data-duration="{duration}"
-                    tabindex={tabindex}></audio>
+                data-src="{audio}"
+                data-start="{start}"
+                data-duration="{duration}"
+                tabindex={tabindex}></audio>
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="100%"
+                height="20px"
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none">
+
+                <rect
+                    x="0"
+                    y="20"
+                    width="100"
+                    height="60"
+                    stroke="black"
+                    stroke-width="2"
+                    fill="transparent" />
+                <rect
+                    x="{start_ratio}"
+                    y="0"
+                    width="{duration_ratio}"
+                    height="100"
+                    fill="#f5ce28aa" />
+            </svg>
+            <div>
+                {start:.2f} - {end:.2f} of {total_duration:.2f} seconds
+            </div>
         </div>
-        <div>from {start:.2f} to {end:.2f} seconds</div>
         <ul>
             <li><a href="{search}">similar to this</a></li>
             <li><a href={_id}>download</a></li>
+            <li><a href="{web_url}">on the web</a></li>
         </ul>
     </div>
 </li>

@@ -57,10 +57,6 @@ $(function() {
     var soundalikeClient = new SoundalikeClient();
     var context = new AudioContext();
 
-    $('.spectrogram img').click(function() {
-        $(this).siblings('audio')[0].play();
-    });
-
     function loadResults() {
         $('.search-result').not('.loaded').each(function(index) {
             var elem = $(this).get(0);
