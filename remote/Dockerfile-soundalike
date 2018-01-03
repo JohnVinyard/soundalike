@@ -10,4 +10,4 @@ COPY remote/static/* remote/static/
 COPY remote/static/templates/* remote/static/templates/
 
 CMD gunicorn api:application \
-    --bind 0.0.0.0:8000 --workers 4 --max-requests 100 --chdir remote/
+    --bind 0.0.0.0:8000 --workers 4 --max-requests 500 --chdir remote/

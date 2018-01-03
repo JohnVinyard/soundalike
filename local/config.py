@@ -10,6 +10,7 @@ sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 from common.model import \
     SoundWithNoSettings, spectrogram_duration, scale_bands, anchor_slice
 from common.soundalike_client import SoundalikeClient
+from common.log import module_logger
 
 soundalike_client = SoundalikeClient(
     'http',

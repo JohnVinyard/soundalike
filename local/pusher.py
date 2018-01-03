@@ -58,27 +58,26 @@ internet_archive_ids = [
 ]
 
 
-def master_iterator(freesound_api_key):
-    # for meta in zounds.PhatDrumLoops():
-    #     yield meta
-
-    # for query in queries:
-    #     for meta in zounds.FreeSoundSearch(
-    #             freesound_api_key, query, n_results=20, delay=1.0):
-    #         yield meta
-
-    for archive_id in internet_archive_ids:
-        for meta in zounds.InternetArchive(archive_id):
-            yield meta
-
-    #
-    # mn = zounds.MusicNet(path='/home/user/Downloads')
-    # for meta in mn:
-    #     yield meta
-
-    # ns = zounds.NSynth(path='/home/user/Downloads')
-    # for meta in ns:
-    #     yield meta
+# def master_iterator(freesound_api_key):
+#     for meta in zounds.PhatDrumLoops():
+#         yield meta
+#
+#     for query in queries:
+#         for meta in zounds.FreeSoundSearch(
+#                 freesound_api_key, query, n_results=20, delay=1.0):
+#             yield meta
+#
+#     for archive_id in internet_archive_ids:
+#         for meta in zounds.InternetArchive(archive_id):
+#             yield meta
+#
+#     mn = zounds.MusicNet(path='/home/user/Downloads')
+#     for meta in mn:
+#         yield meta
+#
+#     ns = zounds.NSynth(path='/home/user/Downloads')
+#     for meta in ns:
+#         yield meta
 
 
 if __name__ == '__main__':
@@ -91,16 +90,29 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     new_id = most_recent_id()
-    try:
-        cls = with_hash(new_id)
-    except NoTrainedModelException:
-        cls = Sound
 
-    for meta in master_iterator(args.freesound_key):
-        if not cls.exists(meta.uri.url):
-            print meta
-            try:
-                cls.process(meta=meta, _id=meta.uri.url)
-            except Exception as e:
-                print e
-                continue
+    # try:
+    #     cls = with_hash(new_id)
+    # except NoTrainedModelException:
+    #     cls = Sound
+
+    cls = Sound
+
+    zounds.ingest(zounds.PhatDrumLoops(), cls, multi_threaded=True)
+
+    for query in queries:
+        fss = zounds.FreeSoundSearch(
+            args.freesound_key, query, n_results=20, delay=1.0)
+        zounds.ingest(fss, cls, multi_threaded=True)
+
+    for archive_id in internet_archive_ids:
+        zounds.ingest(
+            zounds.InternetArchive(archive_id=archive_id),
+            cls,
+            multi_threaded=True)
+
+    # mn = zounds.MusicNet(path='/home/user/Downloads')
+    # zounds.ingest(mn, cls, multi_threaded=True)
+
+    ns = zounds.NSynth(path='/home/user/Downloads')
+    zounds.ingest(ns, cls, multi_threaded=True)

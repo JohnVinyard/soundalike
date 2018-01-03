@@ -9,6 +9,7 @@ sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 from common.model import SoundWithNoSettings
 from common.soundalike_client import SoundalikeClient
+from common.log import module_logger
 import redis
 
 REDIS_CLIENT = redis.StrictRedis(host='redis')
@@ -18,6 +19,8 @@ soundalike_client = SoundalikeClient('http', 'api')
 base_path = '/var/lib/data'
 
 print('starting config')
+
+logger = module_logger(__file__)
 
 
 class ModelSettings(ff.PersistenceSettings):
@@ -58,3 +61,5 @@ class Sound(SoundWithNoSettings, ModelSettings):
 
 
 print('done with config')
+
+logger.debug(ModelSettings.database.env.readers())

@@ -4,8 +4,11 @@ from index import hamming_index, HammingIndexPath
 import sys
 import uuid
 
+logger = config.module_logger(__file__)
+
 
 def main(index_id):
+
     # create a new index every time.  never add to an existing index
     index_id = index_id + uuid.uuid4().hex[:4]
     with hamming_index(config.Sound, index_id, writeonly=True) as index:
@@ -16,6 +19,7 @@ def main(index_id):
             except Exception as e:
                 print('indexing error {e}'.format(e=e))
 
+    logger.debug(index.hamming_db.env.readers())
     HammingIndexPath.clean_old(keep_past=2)
 
 

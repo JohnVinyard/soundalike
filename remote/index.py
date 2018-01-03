@@ -2,9 +2,10 @@ from __future__ import print_function
 import zounds
 import glob
 import shutil
-from config import base_path
+from config import base_path, module_logger
 import os
 import sys
+
 
 class NoIndexesError(Exception):
     pass

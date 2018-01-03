@@ -11,12 +11,14 @@ from index import HammingIndexPath
 
 import falcon
 
-from config import Sound, REDIS_CLIENT, DummyFeatureAccessError
+from config import Sound, REDIS_CLIENT, DummyFeatureAccessError, module_logger
 from helpers import \
     WebTimeSlice, FeatureUri, SoundUri, SearchUri, Code, RandomSearchUri
 from index import hamming_index, NoIndexesError
 from templates import render_html
 from decoder_selector import DecoderSelector
+
+logger = module_logger(__file__)
 
 
 class SoundsResource(object):
@@ -194,6 +196,7 @@ class DummyIndex(object):
     """
     Stand-in null object for cases where no index has been initialized
     """
+
     def __init__(self):
         super(DummyIndex, self).__init__()
 
@@ -216,6 +219,7 @@ class SearchResource(object):
 
         try:
             self.index = hamming_index(Sound)
+            logger.debug(self.index.hamming_db.env.readers())
             return self.index
         except NoIndexesError:
             return DummyIndex()
@@ -232,6 +236,7 @@ class SearchResource(object):
             sort=True)
 
     def __del__(self):
+        print('deleting search resource', file=sys.stderr)
         self.index.close()
 
     def on_get(self, req, resp, code=None):
