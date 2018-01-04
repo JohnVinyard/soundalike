@@ -128,8 +128,11 @@ def learn(epochs=500, nsamples=int(1e5), init_weights=False):
     tpool = ThreadPool(4)
 
     def compute_hashed(snd):
-        print snd._id
-        print snd.hashed.shape
+        try:
+            print snd._id
+            print snd.hashed.shape
+        except Exception as e:
+            print 'Feature computation error', e
 
     tpool.map(compute_hashed, snd_class)
 

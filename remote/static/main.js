@@ -80,7 +80,7 @@ $(function() {
                         var source = context.createBufferSource();
                         source.buffer = audioBuffer;
                         source.connect(context.destination);
-                        source.start(0, start, duration);
+                        source.start(0);
                     });
                 });
 

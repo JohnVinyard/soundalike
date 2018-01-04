@@ -98,21 +98,23 @@ if __name__ == '__main__':
 
     cls = Sound
 
-    zounds.ingest(zounds.PhatDrumLoops(), cls, multi_threaded=True)
+    # zounds.ingest(zounds.PhatDrumLoops(), cls, multi_threaded=True)
+    #
+    # for query in queries:
+    #     fss = zounds.FreeSoundSearch(
+    #         args.freesound_key, query, n_results=20, delay=1.0)
+    #     zounds.ingest(fss, cls, multi_threaded=True)
 
-    for query in queries:
-        fss = zounds.FreeSoundSearch(
-            args.freesound_key, query, n_results=20, delay=1.0)
-        zounds.ingest(fss, cls, multi_threaded=True)
-
-    for archive_id in internet_archive_ids:
-        zounds.ingest(
-            zounds.InternetArchive(archive_id=archive_id),
-            cls,
-            multi_threaded=True)
+    # for archive_id in internet_archive_ids:
+    #     zounds.ingest(
+    #         zounds.InternetArchive(archive_id=archive_id),
+    #         cls,
+    #         multi_threaded=True)
+    #
 
     # mn = zounds.MusicNet(path='/home/user/Downloads')
     # zounds.ingest(mn, cls, multi_threaded=True)
+
 
     ns = zounds.NSynth(path='/home/user/Downloads')
     zounds.ingest(ns, cls, multi_threaded=True)

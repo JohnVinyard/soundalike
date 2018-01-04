@@ -182,6 +182,7 @@ def transform_search_result(result, req, nresults):
             req=req)),
         audio=str(FeatureUri(
             quoted_id=quoted_id,
+            timeslice_query_string=qs,
             feature='ogg',
             req=req)),
         meta=str(FeatureUri(
