@@ -16,7 +16,7 @@ soundalike_client = SoundalikeClient(
     'http',
     environ['SOUNDALIKE_REMOTE'],
     feature_cache='/home/user/feature_cache',
-    never_cache=set(['hashed', 'pca']))
+    never_cache=set(['hashed']))
 
 
 class ModelSettings(ff.PersistenceSettings):

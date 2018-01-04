@@ -211,19 +211,17 @@ class DummyIndex(object):
 class SearchResource(object):
     def __init__(self):
         super(SearchResource, self).__init__()
-        self.index = None
+        self.index = self._init_index()
+
+    def _init_index(self):
+        try:
+            return hamming_index(Sound)
+        except NoIndexesError:
+            return DummyIndex()
 
     @property
     def hamming_index(self):
-        if self.index is not None:
-            return self.index
-
-        try:
-            self.index = hamming_index(Sound)
-            logger.debug(self.index.hamming_db.env.readers())
-            return self.index
-        except NoIndexesError:
-            return DummyIndex()
+        return self.index or DummyIndex()
 
     def random_search(self, n_results):
         return self.hamming_index.random_search(

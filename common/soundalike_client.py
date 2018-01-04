@@ -9,7 +9,13 @@ from time import sleep
 
 
 class SoundalikeClient(object):
-    def __init__(self, scheme, host, feature_cache=None, never_cache=set()):
+    def __init__(
+            self,
+            scheme,
+            host,
+            feature_cache=None,
+            never_cache=set()):
+
         self.never_cache = never_cache
         self.host = host
         self.scheme = scheme
@@ -124,7 +130,6 @@ class SoundalikeClient(object):
                 raise
 
     def set_sound_feature(self, _id, feature, data):
-
         try:
             data = blosc.compress(data, typesize=32)
         except TypeError:
