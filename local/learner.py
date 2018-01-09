@@ -11,7 +11,10 @@ from multiprocessing.pool import Pool, cpu_count, ThreadPool
 
 from autoencoder import EmbeddingPipeline, most_recent_id
 from config import \
-    Sound, soundalike_client, spectrogram_duration, scale_bands, anchor_slice
+    Sound, soundalike_client, spectrogram_duration, scale_bands, anchor_slice, \
+    module_logger
+
+logger = module_logger(__file__)
 
 embedding_dimension = 128
 
@@ -128,11 +131,9 @@ def learn(epochs=500, nsamples=int(1e5), init_weights=False):
     tpool = ThreadPool(4)
 
     def compute_hashed(snd):
-        try:
-            print snd._id
-            print snd.hashed.shape
-        except Exception as e:
-            print 'Feature computation error', e
+        _id = snd._id
+        logger.debug('Computing {_id} hashed feature'.format(**locals()))
+        snd_class.hashed.compute(_id=_id, persistence=snd)
 
     tpool.map(compute_hashed, snd_class)
 

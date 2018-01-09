@@ -25,6 +25,7 @@ class EmbeddingPipeline(BasePipeline, Settings):
     simhash = ff.PickleFeature(
         zounds.SimHash,
         bits=ff.Var('bits'),
+        packbits=True,
         needs=unitnorm)
 
     pipeline = ff.PickleFeature(

@@ -58,4 +58,4 @@ ENV PATH /opt/conda/bin:$PATH
 
 RUN conda install -y numpy=1.12.1 scipy=0.19 && conda clean -i -l -t -y
 
-RUN pip install zounds==0.34.12 && rm -rf /root/.cache/pip/*
+RUN pip install zounds==0.35.12 && rm -rf /root/.cache/pip/*

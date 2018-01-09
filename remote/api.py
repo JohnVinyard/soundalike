@@ -83,9 +83,10 @@ class SoundResource(object):
 
             d = dict(features=features, **snd.meta)
 
-            codes = set(
-                map(lambda x: x.encoded,
-                    Code.from_expanded_array(snd.hashed)))
+            codes = set(map(
+                lambda x: x.encoded,
+                Code.from_packed_array(snd.hashed)))
+
             search_uris = map(lambda code: str(SearchUri(code, req=req)), codes)
             d['similar'] = search_uris
 
@@ -141,7 +142,7 @@ class SoundFeatureResource(object):
                 resp.set_header(k, v)
 
             # TODO: Can I fold this into DecoderSelector somehow?
-            if feature.key != 'hashed' and feature.key != 'pca':
+            if feature.key != 'hashed':
                 resp.set_header('Cache-Control', 'max-age=86400')
 
             resp.status = httplib.OK
@@ -221,7 +222,13 @@ class SearchResource(object):
 
     @property
     def hamming_index(self):
-        return self.index or DummyIndex()
+        try:
+            return self.index or DummyIndex()
+        except TypeError:
+            logger.error(
+                'Problem initializing hamming db from {path}'
+                    .format(path=self.index.path))
+            return DummyIndex()
 
     def random_search(self, n_results):
         return self.hamming_index.random_search(

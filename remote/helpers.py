@@ -30,6 +30,11 @@ class Code(object):
         for p in packed:
             yield Code(p)
 
+    @classmethod
+    def from_packed_array(cls, arr):
+        for x in arr:
+            yield Code(x)
+
 
 ONE_SECOND = zounds.Seconds(1)
 

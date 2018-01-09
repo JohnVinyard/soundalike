@@ -4,7 +4,8 @@ import glob
 import shutil
 from config import base_path, module_logger
 import os
-import sys
+
+logger = module_logger(__file__)
 
 
 class NoIndexesError(Exception):
@@ -17,8 +18,9 @@ class HammingIndexPath(object):
 
     @classmethod
     def indices(cls):
-        files = sorted(glob.glob(os.path.join(base_path, 'index_*')))
-        return files
+        files = glob.glob(os.path.join(base_path, 'index_*'))
+        oldest_to_newest = sorted(files, key=lambda x: os.stat(x).st_ctime)
+        return oldest_to_newest
 
     @classmethod
     def most_recent_index(cls):
@@ -47,15 +49,29 @@ def hamming_index(snd_cls, recent_id=None, writeonly=False):
     else:
         path = HammingIndexPath.most_recent_index()
 
+    duration_cache = dict()
+    web_url_cache = dict()
+
     def web_url(doc, ts):
-        url = doc.meta['web_url']
-        print(url, file=sys.stderr)
+        try:
+            url = web_url_cache[doc._id]
+        except KeyError:
+            url = doc.meta['web_url']
+            web_url_cache[doc._id] = url
+
         return url
 
     def total_duration(doc, ts):
-        duration = doc.geom.dimensions[0].end / zounds.Seconds(1)
-        print(duration, file=sys.stderr)
+        try:
+            duration = duration_cache[doc._id]
+        except KeyError:
+            duration = doc.geom.dimensions[0].end / zounds.Seconds(1)
+            duration_cache[doc._id] = duration
         return duration
+
+    logger.debug(
+        'loading hamming index from {path} in writeonly={writeonly} mode'
+            .format(**locals()))
 
     return zounds.HammingIndex(
         snd_cls,
